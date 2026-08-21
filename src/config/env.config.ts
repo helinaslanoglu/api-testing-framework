@@ -23,3 +23,20 @@ export const config: AppConfig = {
   maxRetries: parseInt(process.env.API_MAX_RETRIES || '2', 10),
   retryDelayMs: parseInt(process.env.API_RETRY_DELAY_MS || '200', 10),
 };
+
+/**
+ * Returns a sanitized configuration summary suitable for CI/local execution logging.
+ * All sensitive passwords and credentials are redacted.
+ */
+export function getSanitizedConfigSummary(): Record<string, string | number> {
+  return {
+    environment: process.env.NODE_ENV || 'test',
+    baseUrl: config.baseUrl,
+    defaultUsername: config.defaultUsername,
+    defaultPassword: '[REDACTED]',
+    timeoutMs: config.timeout,
+    defaultSlaThresholdMs: config.defaultSlaThresholdMs,
+    maxRetries: config.maxRetries,
+    retryDelayMs: config.retryDelayMs,
+  };
+}

@@ -1,6 +1,6 @@
 # API Testing Framework
 
-A production-style REST API test automation & quality engineering framework built with TypeScript and Playwright (`APIRequestContext`). Designed with standard QA engineering practices including client layer abstractions, pre-authenticated fixtures, strongly-typed request/response models, Zod runtime schema contract validation, dynamic test data factories powered by `@faker-js/faker`, response latency SLA assertions, sensitive-redacted diagnostic logging, controlled transient retries, categorized Playwright test tags, and GitHub Actions CI integration.
+A production-style REST API test automation & quality engineering framework built with TypeScript and Playwright (`APIRequestContext`). Designed with standard QA engineering practices including client layer abstractions, pre-authenticated fixtures, strongly-typed request/response models, Zod runtime schema contract validation, dynamic test data factories powered by `@faker-js/faker`, response latency SLA assertions, sensitive-redacted diagnostic logging, controlled transient retries, categorized Playwright test tags, GitHub Actions CI quality gates, and automated test artifact collection.
 
 ---
 
@@ -11,11 +11,12 @@ This framework demonstrates practical, maintainable API quality engineering capa
 - **Pre-Authenticated Fixtures**: Isolated authentication handling via `authenticatedUsersClient` fixture, ensuring token isolation without hardcoding credentials in test blocks.
 - **Resource Collection Pagination Testing**: Dedicated pagination suite (`tests/pagination/pagination.spec.ts`) validating default limits, skip offsets, page isolation, and metadata consistency (`src/utils/pagination-validator.ts`).
 - **Controlled Retry Strategy**: Exponential backoff retry handler (`src/utils/retry-handler.ts`) for transient HTTP/network failures (500, 502, 503, 504, 429) while preserving deterministic assertion failures.
-- **Sensitive-Redacted Diagnostics**: Security-conscious logger (`src/utils/logger.ts`) redacting passwords, JWT tokens, Bearer headers, and secrets in diagnostic logs.
+- **Sensitive-Redacted Diagnostics**: Security-conscious logger (`src/utils/logger.ts`) and environment summary helper (`getSanitizedConfigSummary`) redacting passwords, JWT tokens, Bearer headers, and secrets in CI logs and diagnostic outputs.
 - **Response Latency SLA Assertions**: Automatic timing measurement (`responseTimeMs`) on every API request with configurable SLA threshold assertions (`assertSla`, `tests/performance/sla.spec.ts`).
 - **Dynamic Test Data Generation**: Powered by **`@faker-js/faker`** (`src/data/user.factory.ts`), generating realistic dynamic payloads with optional deterministic seeding (`seedFaker`).
 - **Runtime JSON Schema & Contract Testing**: Powered by **Zod** (`src/models/schemas/`), validating live API responses against runtime type contracts with line-level diagnostic error reporting (`src/utils/schema-validator.ts`).
 - **Categorized Test Tagging**: Organized into targeted execution tags (`@smoke`, `@auth`, `@pagination`, `@retry`, `@contract`, `@negative`, `@boundary`, `@sla`).
+- **Production CI Quality Pipeline**: Multi-gate GitHub Actions workflow enforcing Typecheck → Lint → Environment Summary → Smoke Gate → Full API Regression → Artifact Upload.
 
 ---
 
@@ -25,8 +26,8 @@ This framework demonstrates practical, maintainable API quality engineering capa
 - **Test Runner**: Playwright Test (`APIRequestContext`)
 - **Schema Validation**: Zod (`z.object()`, `safeParse()`)
 - **Test Data Generation**: `@faker-js/faker`
-- **Runtime**: Node.js (v20+)
-- **Package Manager**: npm
+- **Runtime**: Node.js (v20 LTS)
+- **Package Manager**: npm (`npm ci` deterministic installation)
 - **Linter**: ESLint (Flat Config + `@typescript-eslint`)
 - **Target API**: [DummyJSON](https://dummyjson.com) (Public REST API)
 - **CI/CD**: GitHub Actions
@@ -39,7 +40,7 @@ This framework demonstrates practical, maintainable API quality engineering capa
 api-testing-framework/
 ├── .github/
 │   └── workflows/
-│       └── api-tests.yml        # CI pipeline executing smoke & full regression test suites
+│       └── api-tests.yml        # CI pipeline executing quality gates, smoke tests, & full regression
 ├── src/
 │   ├── clients/                 # Reusable API Client abstractions
 │   │   ├── BaseApiClient.ts     # Base client measuring latency & formatting redacted logs
@@ -47,7 +48,7 @@ api-testing-framework/
 │   │   ├── UsersClient.ts       # Users CRUD endpoints
 │   │   └── HealthClient.ts      # Availability / health check endpoint
 │   ├── config/
-│   │   └── env.config.ts        # Centralized environment, SLA, & retry configuration
+│   │   └── env.config.ts        # Centralized environment, SLA, retry, & redacted summary config
 │   ├── data/
 │   │   └── user.factory.ts      # Dynamic test data builder functions powered by @faker-js/faker
 │   ├── fixtures/
@@ -87,7 +88,7 @@ api-testing-framework/
 ├── .gitignore                   # Workspace git exclusion rules
 ├── eslint.config.js             # ESLint 9 configuration
 ├── package.json                 # Project manifest and npm scripts
-├── playwright.config.ts         # Playwright API configuration
+├── playwright.config.ts         # Playwright API configuration (with GitHub CI annotations)
 ├── README.md                    # Project documentation
 └── tsconfig.json                # Strict TypeScript configuration
 ```
@@ -98,7 +99,7 @@ api-testing-framework/
 
 ### Prerequisites
 
-- Node.js v18 or higher (v20 recommended)
+- Node.js v18 or higher (v20 LTS recommended)
 - npm v9 or higher
 
 ### Installation
@@ -126,7 +127,7 @@ cp .env.example .env
 | `npm run typecheck` | Run TypeScript compiler type checking without emitting files |
 | `npm run lint` | Execute ESLint across all TypeScript source and test files |
 | `npm run test:api` | Run full API regression test suite across all 8 spec files |
-| `npm run test:smoke` | Run fast smoke test suite (`@smoke`) |
+| `npm run test:smoke` | Run early quality gate smoke test suite (`@smoke`) |
 | `npm run test:auth` | Run authentication & authorization test suite (`@auth`) |
 | `npm run test:pagination` | Run collection pagination & page isolation test suite (`@pagination`) |
 | `npm run test:retry` | Run controlled transient retry policy test suite (`@retry`) |
@@ -135,6 +136,65 @@ cp .env.example .env
 | `npm run test:boundary` | Run dedicated boundary & edge-case test suite (`@boundary`) |
 | `npm run test:sla` | Run response time SLA & latency performance test suite (`@sla`) |
 | `npm run test:report` | Serve Playwright HTML test report |
+
+---
+
+## CI/CD Pipeline & Quality Gates
+
+The GitHub Actions workflow (`.github/workflows/api-tests.yml`) executes on every `push` and `pull_request` to `main`/`master`:
+
+```
++--------------------------+
+|  Gate 1: TypeScript      |  (tsc --noEmit)
++------------+-------------+
+             |
+             v
++--------------------------+
+|  Gate 2: ESLint Check    |  (eslint .)
++------------+-------------+
+             |
+             v
++--------------------------+
+|  Environment Summary     |  (Sanitized configuration output)
++------------+-------------+
+             |
+             v
++--------------------------+
+|  Gate 3: Smoke Tests     |  (npm run test:smoke - Fast failure check)
++------------+-------------+
+             |
+             v
++--------------------------+
+|  Gate 4: Full Regression |  (npm run test:api - All 41 tests)
++------------+-------------+
+             |
+             v
++--------------------------+
+|  Artifact Upload         |  (api-playwright-report / api-test-results)
++--------------------------+
+```
+
+### CI Artifact Policies
+- **`api-playwright-report`**: Uploaded on `always()` with a 14-day retention period. Provides the full interactive Playwright HTML report.
+- **`api-test-results`**: Uploaded on `failure()` with a 14-day retention period. Contains Playwright trace files and diagnostic output for failed test runs.
+
+---
+
+## Security & Sensitive Data Redaction
+
+Security principles are strictly enforced across logging and reporting layers:
+- **Header Redaction**: `Authorization`, `x-api-key`, `cookie`, and `set-cookie` headers are automatically replaced with `"[REDACTED]"`.
+- **Payload Field Redaction**: Object keys named `password`, `accessToken`, `refreshToken`, `token`, and `secret` are recursively replaced with `"[REDACTED]"`.
+- **Environment Summary Redaction**: `getSanitizedConfigSummary()` outputs base URLs and thresholds while masking all credentials (`defaultPassword: "[REDACTED]"`).
+
+---
+
+## Senior SDET Engineering Decisions
+
+1. **Smoke Testing as an Early Quality Gate**: Smoke tests (`@smoke`) execute before the full regression suite in CI to catch baseline service outages or configuration errors within 2 seconds, failing fast before spending compute time on full regression.
+2. **Playwright Sharding Analysis**: Sharding across multiple GitHub Action runners was intentionally omitted. The entire 41-test suite completes in **~3.5 seconds** on a single runner. Provisioning additional runners introduces 30–60 seconds of container startup overhead, which would degrade overall CI speed.
+3. **Controlled Retries over Arbitrary Retries**: Retries (`executeWithRetry`) apply only to transient HTTP status codes (500, 502, 503, 504, 429). Deterministic test assertion failures (e.g. 404 or contract mismatch) fail immediately without retrying.
+4. **Public API Contract Respect**: Tests align strictly with observed target API contracts (e.g. DummyJSON returning HTTP 200 on `limit=0` pagination queries) rather than forcing unverified REST assumptions.
 
 ---
 
@@ -153,6 +213,7 @@ cp .env.example .env
                  | (Auth, Users, Health) |
                  +-----------+-----------+
                              |
+                   Measures & Validates
              +---------------+---------------+
              |               |               |
              v               v               v
@@ -161,26 +222,20 @@ cp .env.example .env
  | (schema-validator.ts) | | (sla-validator.ts)| | (logger.ts)       |
  +-----------+-----------+ +---------+---------+ +---------+---------+
              |                       |                   |
-             +-----------------------+-------------------+
-                                     |
-                                 Extends
-                                     v
-                         +-----------------------+
-                         |    BaseApiClient      |
-                         | (Wraps Playwright     |
-                         |   APIRequestContext)  |
-                         +-----------+-----------+
-                                     |
-                          Sends HTTP Request to
-                                     v
-                         +-----------------------+
-                         |  Target REST API      |
-                         | (https://dummyjson.com)|
-                         +-----------------------+
+             +---------------+-------+-------------------+
+                             |
+                         Extends
+                             v
+                 +-----------------------+
+                 |    BaseApiClient      |
+                 | (Wraps Playwright     |
+                 |   APIRequestContext)  |
+                 +-----------+-----------+
+                             |
+                  Sends HTTP Request to
+                             v
+                 +-----------------------+
+                 |  Target REST API      |
+                 | (https://dummyjson.com)|
+                 +-----------------------+
 ```
-
-1. **Base Client (`BaseApiClient`)**: Wraps Playwright's native `APIRequestContext`. Centralizes request execution, latency measurement (`responseTimeMs`), sensitive data redaction (`logger.ts`), and uniform response formatting into `ApiResponse<T>`.
-2. **Resource Clients (`AuthClient`, `UsersClient`, `HealthClient`)**: Provide domain-specific methods (e.g. `usersClient.getUser(id)`).
-3. **Pre-Authenticated Fixtures (`test.fixture.ts`)**: Extends Playwright's `test` object with `authenticatedUsersClient` providing pre-authenticated token state.
-4. **Retry Strategy (`retry-handler.ts`)**: Retries transient HTTP 5xx/429 failures with exponential backoff while allowing deterministic test failures to report immediately.
-5. **Redacted Diagnostics (`logger.ts`)**: Sanitizes authorization tokens, passwords, and sensitive headers in diagnostic outputs.

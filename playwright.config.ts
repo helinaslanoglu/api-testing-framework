@@ -11,10 +11,16 @@ export default defineConfig({
   expect: {
     timeout: 5000,
   },
-  reporter: [
-    ['list'],
-    ['html', { open: 'never', outputFolder: 'playwright-report' }],
-  ],
+  reporter: process.env.CI
+    ? [
+        ['github'],
+        ['list'],
+        ['html', { open: 'never', outputFolder: 'playwright-report' }],
+      ]
+    : [
+        ['list'],
+        ['html', { open: 'never', outputFolder: 'playwright-report' }],
+      ],
   use: {
     baseURL: config.baseUrl,
     extraHTTPHeaders: {

@@ -8,29 +8,36 @@ on:
 
 jobs:
   test:
-    name: Run API Tests & Quality Checks
+    name: Run API Quality Gates & Regression Suite
     runs-on: ubuntu-latest
 
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v4
 
-      - name: Setup Node.js
+      - name: Setup Node.js (v20 LTS)
         uses: actions/setup-node@v4
         with:
           node-version: 20
           cache: 'npm'
 
-      - name: Install Dependencies
+      - name: Install Dependencies (Deterministic)
         run: npm ci
 
-      - name: Run TypeScript Typecheck
+      - name: Gate 1 - TypeScript Typecheck
         run: npm run typecheck
 
-      - name: Run ESLint Quality Check
+      - name: Gate 2 - ESLint Quality Check
         run: npm run lint
 
-      - name: Run Smoke API Tests
+      - name: Display Sanitized Environment Configuration
+        run: node -e "const { getSanitizedConfigSummary } = require('./src/config/env.config'); console.log('[CI ENVIRONMENT CONFIG]', JSON.stringify(getSanitizedConfigSummary(), null, 2));"
+        env:
+          API_BASE_URL: https://dummyjson.com
+          API_USERNAME: emilys
+          API_PASSWORD: emilyspass
+
+      - name: Gate 3 - Early Smoke API Tests (@smoke)
         run: npm run test:smoke
         env:
           CI: true
@@ -38,7 +45,7 @@ jobs:
           API_USERNAME: emilys
           API_PASSWORD: emilyspass
 
-      - name: Run Full API Regression Suite
+      - name: Gate 4 - Full API Regression Suite
         run: npm run test:api
         env:
           CI: true
@@ -46,10 +53,18 @@ jobs:
           API_USERNAME: emilys
           API_PASSWORD: emilyspass
 
-      - name: Upload Test Report Artifact
+      - name: Upload HTML Test Report Artifact
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: playwright-report
+          name: api-playwright-report
           path: playwright-report/
+          retention-days: 14
+
+      - name: Upload Failure Diagnostics Artifact
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: api-test-results
+          path: test-results/
           retention-days: 14
