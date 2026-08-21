@@ -1,37 +1,49 @@
+import { faker } from '@faker-js/faker';
 import { CreateUserRequest, UpdateUserRequest } from '../models/user.model';
 import { LoginRequest } from '../models/auth.model';
 import { config } from '../config/env.config';
 
 /**
- * Generates dynamic CreateUserRequest test data with optional overrides
+ * Optionally seeds Faker.js for reproducible deterministic dynamic data generation
+ */
+export function seedFaker(seed?: number): void {
+  if (seed !== undefined) {
+    faker.seed(seed);
+  }
+}
+
+/**
+ * Generates dynamic CreateUserRequest test data using Faker.js
  */
 export function buildCreateUserPayload(
   overrides?: Partial<CreateUserRequest>
 ): CreateUserRequest {
-  const timestamp = Date.now();
+  const firstName = faker.person.firstName();
+  const lastName = faker.person.lastName();
   return {
-    firstName: `TestUser_${timestamp}`,
-    lastName: 'Automation',
-    email: `test.user_${timestamp}@example.com`,
-    age: 28,
-    username: `qa_user_${timestamp}`,
+    firstName,
+    lastName,
+    email: faker.internet.email({ firstName, lastName }),
+    age: faker.number.int({ min: 20, max: 60 }),
+    username: `${firstName.toLowerCase()}_${faker.number.int({ min: 100, max: 999 })}`,
     role: 'user',
     ...overrides,
   };
 }
 
 /**
- * Generates dynamic UpdateUserRequest test data with optional overrides
+ * Generates dynamic UpdateUserRequest test data using Faker.js
  */
 export function buildUpdateUserPayload(
   overrides?: Partial<UpdateUserRequest>
 ): UpdateUserRequest {
-  const timestamp = Date.now();
+  const firstName = faker.person.firstName();
+  const lastName = faker.person.lastName();
   return {
-    firstName: `UpdatedFirst_${timestamp}`,
-    lastName: 'UpdatedLast',
-    email: `updated.email_${timestamp}@example.com`,
-    age: 32,
+    firstName: `Updated_${firstName}`,
+    lastName,
+    email: faker.internet.email({ firstName: `updated_${firstName}`, lastName }),
+    age: faker.number.int({ min: 22, max: 62 }),
     ...overrides,
   };
 }
@@ -50,11 +62,27 @@ export function buildValidLoginPayload(
 }
 
 /**
- * Generates invalid login payload for negative testing
+ * Generates invalid login payload for negative testing using Faker.js
  */
 export function buildInvalidLoginPayload(): LoginRequest {
   return {
-    username: 'invalid_user_name_xyz',
-    password: 'wrong_password_123',
+    username: `invalid_${faker.string.alphanumeric(10)}`,
+    password: `wrong_${faker.string.alphanumeric(10)}`,
   };
+}
+
+/**
+ * Generates empty login payload for missing credential testing
+ */
+export function buildEmptyLoginPayload(): LoginRequest {
+  return {} as LoginRequest;
+}
+
+/**
+ * Generates login payload missing password
+ */
+export function buildMissingPasswordLoginPayload(): LoginRequest {
+  return {
+    username: config.defaultUsername,
+  } as LoginRequest;
 }

@@ -6,6 +6,7 @@ export interface ApiResponse<T> {
   data: T;
   headers: Record<string, string>;
   rawResponse: APIResponse;
+  responseTimeMs: number;
 }
 
 export interface ApiErrorResponse {

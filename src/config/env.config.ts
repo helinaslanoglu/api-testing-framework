@@ -9,6 +9,7 @@ export interface AppConfig {
   defaultUsername: string;
   defaultPassword: string;
   timeout: number;
+  defaultSlaThresholdMs: number;
 }
 
 export const config: AppConfig = {
@@ -16,4 +17,5 @@ export const config: AppConfig = {
   defaultUsername: process.env.API_USERNAME || 'emilys',
   defaultPassword: process.env.API_PASSWORD || 'emilyspass',
   timeout: parseInt(process.env.API_TIMEOUT || '30000', 10),
+  defaultSlaThresholdMs: parseInt(process.env.API_SLA_THRESHOLD_MS || '3000', 10),
 };

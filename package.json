@@ -6,6 +6,10 @@
   "scripts": {
     "test": "playwright test",
     "test:api": "playwright test",
+    "test:schema": "playwright test tests/schema",
+    "test:negative": "playwright test tests/negative",
+    "test:boundary": "playwright test tests/boundary",
+    "test:sla": "playwright test tests/performance",
     "test:headed": "playwright test --headed",
     "lint": "eslint .",
     "typecheck": "tsc --noEmit",
@@ -18,11 +22,19 @@
     "rest-api",
     "automation",
     "sdet",
-    "qa-engineering"
+    "qa-engineering",
+    "zod",
+    "schema-validation",
+    "faker",
+    "sla-testing"
   ],
   "author": "Helin Aslanoglu",
   "license": "ISC",
+  "dependencies": {
+    "zod": "^3.23.8"
+  },
   "devDependencies": {
+    "@faker-js/faker": "^9.1.0",
     "@playwright/test": "^1.48.0",
     "@types/node": "^20.17.0",
     "@typescript-eslint/eslint-plugin": "^8.10.0",

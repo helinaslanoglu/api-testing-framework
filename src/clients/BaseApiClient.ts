@@ -11,7 +11,11 @@ export abstract class BaseApiClient {
     this.baseUrl = baseUrl;
   }
 
-  private async formatResponse<T>(response: APIResponse): Promise<ApiResponse<T>> {
+  private async formatResponse<T>(
+    response: APIResponse,
+    startTime: number
+  ): Promise<ApiResponse<T>> {
+    const responseTimeMs = Date.now() - startTime;
     let data: T;
     try {
       data = (await response.json()) as T;
@@ -25,6 +29,7 @@ export abstract class BaseApiClient {
       data,
       headers: response.headers(),
       rawResponse: response,
+      responseTimeMs,
     };
   }
 
@@ -34,11 +39,12 @@ export abstract class BaseApiClient {
     headers?: Record<string, string>
   ): Promise<ApiResponse<T>> {
     const url = `${this.baseUrl}${endpoint}`;
+    const startTime = Date.now();
     const response = await this.request.get(url, {
       params,
       headers,
     });
-    return this.formatResponse<T>(response);
+    return this.formatResponse<T>(response, startTime);
   }
 
   protected async post<T>(
@@ -47,11 +53,12 @@ export abstract class BaseApiClient {
     headers?: Record<string, string>
   ): Promise<ApiResponse<T>> {
     const url = `${this.baseUrl}${endpoint}`;
+    const startTime = Date.now();
     const response = await this.request.post(url, {
       data,
       headers,
     });
-    return this.formatResponse<T>(response);
+    return this.formatResponse<T>(response, startTime);
   }
 
   protected async put<T>(
@@ -60,11 +67,12 @@ export abstract class BaseApiClient {
     headers?: Record<string, string>
   ): Promise<ApiResponse<T>> {
     const url = `${this.baseUrl}${endpoint}`;
+    const startTime = Date.now();
     const response = await this.request.put(url, {
       data,
       headers,
     });
-    return this.formatResponse<T>(response);
+    return this.formatResponse<T>(response, startTime);
   }
 
   protected async patch<T>(
@@ -73,11 +81,12 @@ export abstract class BaseApiClient {
     headers?: Record<string, string>
   ): Promise<ApiResponse<T>> {
     const url = `${this.baseUrl}${endpoint}`;
+    const startTime = Date.now();
     const response = await this.request.patch(url, {
       data,
       headers,
     });
-    return this.formatResponse<T>(response);
+    return this.formatResponse<T>(response, startTime);
   }
 
   protected async delete<T>(
@@ -85,9 +94,10 @@ export abstract class BaseApiClient {
     headers?: Record<string, string>
   ): Promise<ApiResponse<T>> {
     const url = `${this.baseUrl}${endpoint}`;
+    const startTime = Date.now();
     const response = await this.request.delete(url, {
       headers,
     });
-    return this.formatResponse<T>(response);
+    return this.formatResponse<T>(response, startTime);
   }
 }

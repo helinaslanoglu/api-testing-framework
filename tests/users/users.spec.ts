@@ -4,6 +4,7 @@ import {
   buildUpdateUserPayload,
 } from '../../src/data/user.factory';
 import { ApiErrorResponse } from '../../src/models/common.model';
+import { assertSla } from '../../src/utils/sla-validator';
 
 test.describe('Users API Resource Suite', () => {
   test.describe('Positive Scenarios', () => {
@@ -16,6 +17,7 @@ test.describe('Users API Resource Suite', () => {
 
       expect(response.status).toBe(200);
       expect(response.ok).toBe(true);
+      assertSla(response);
       expect(response.data.limit).toBe(limit);
       expect(response.data.skip).toBe(skip);
       expect(response.data.users.length).toBeLessThanOrEqual(limit);
@@ -37,6 +39,7 @@ test.describe('Users API Resource Suite', () => {
 
       expect(response.status).toBe(200);
       expect(response.ok).toBe(true);
+      assertSla(response);
       expect(response.data.id).toBe(targetUserId);
       expect(response.data.firstName).toBe('Emily');
       expect(response.data.lastName).toBe('Johnson');
@@ -54,6 +57,7 @@ test.describe('Users API Resource Suite', () => {
 
       expect(response.status).toBe(201);
       expect(response.ok).toBe(true);
+      assertSla(response);
       expect(response.data.id).toBeDefined();
       expect(typeof response.data.id).toBe('number');
       expect(response.data.firstName).toBe(payload.firstName);
@@ -69,6 +73,7 @@ test.describe('Users API Resource Suite', () => {
 
       expect(response.status).toBe(200);
       expect(response.ok).toBe(true);
+      assertSla(response);
       expect(response.data.id).toBe(userId);
       expect(response.data.firstName).toBe('QA_Updated');
       expect(response.data.lastName).toBe(payload.lastName);
@@ -80,6 +85,7 @@ test.describe('Users API Resource Suite', () => {
 
       expect(response.status).toBe(200);
       expect(response.ok).toBe(true);
+      assertSla(response);
       expect(response.data.id).toBe(userId);
       expect(response.data.isDeleted).toBe(true);
       expect(response.data.deletedOn).toBeDefined();
@@ -97,6 +103,7 @@ test.describe('Users API Resource Suite', () => {
 
       expect(response.status).toBe(404);
       expect(response.ok).toBe(false);
+      assertSla(response);
       expect(errorData.message).toBe(`User with id '${invalidId}' not found`);
     });
   });
