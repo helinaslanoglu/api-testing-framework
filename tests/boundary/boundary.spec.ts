@@ -3,7 +3,7 @@ import { assertSchemaMatch } from '../../src/utils/schema-validator';
 import { apiErrorSchema } from '../../src/models/schemas/common.schema';
 import { usersListSchema } from '../../src/models/schemas/user.schema';
 
-test.describe('Dedicated Boundary & Edge Case API Testing Suite', () => {
+test.describe('Dedicated Boundary & Edge Case API Testing Suite @boundary', () => {
   test.describe('Resource ID Boundary Testing', () => {
     test('should return HTTP 404 when querying user ID equal to 0', async ({
       usersClient,

@@ -7,7 +7,7 @@ import {
 import { assertSchemaMatch } from '../../src/utils/schema-validator';
 import { apiErrorSchema } from '../../src/models/schemas/common.schema';
 
-test.describe('Dedicated API Negative Testing Suite', () => {
+test.describe('Dedicated API Negative Testing Suite @negative', () => {
   test.describe('Authentication Failure Scenarios', () => {
     test('should reject authentication attempt with invalid credentials and return HTTP 400', async ({
       authClient,

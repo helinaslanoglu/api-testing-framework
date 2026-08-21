@@ -16,7 +16,7 @@ import {
   buildValidLoginPayload,
 } from '../../src/data/user.factory';
 
-test.describe('API JSON Schema & Response Contract Validation Suite', () => {
+test.describe('API JSON Schema & Response Contract Validation Suite @contract', () => {
   test('should validate Users List response against UsersList schema', async ({
     usersClient,
   }) => {

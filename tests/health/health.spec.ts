@@ -1,7 +1,7 @@
 import { test, expect } from '../../src/fixtures/test.fixture';
 
-test.describe('Health Check API', () => {
-  test('should confirm API service availability and return HTTP 200', async ({ healthClient }) => {
+test.describe('Health Check API @health', () => {
+  test('should confirm API service availability and return HTTP 200 @smoke', async ({ healthClient }) => {
     const response = await healthClient.checkHealth();
 
     // Validate HTTP Status & State

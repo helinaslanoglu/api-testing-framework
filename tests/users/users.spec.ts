@@ -6,9 +6,9 @@ import {
 import { ApiErrorResponse } from '../../src/models/common.model';
 import { assertSla } from '../../src/utils/sla-validator';
 
-test.describe('Users API Resource Suite', () => {
+test.describe('Users API Resource Suite @users', () => {
   test.describe('Positive Scenarios', () => {
-    test('should retrieve a paginated list of users with valid pagination parameters', async ({
+    test('should retrieve a paginated list of users with valid pagination parameters @smoke', async ({
       usersClient,
     }) => {
       const limit = 5;
@@ -33,7 +33,7 @@ test.describe('Users API Resource Suite', () => {
       expect(typeof firstUser.email).toBe('string');
     });
 
-    test('should retrieve a single user by ID', async ({ usersClient }) => {
+    test('should retrieve a single user by ID @smoke', async ({ usersClient }) => {
       const targetUserId = 1;
       const response = await usersClient.getUser(targetUserId);
 

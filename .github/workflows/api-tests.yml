@@ -27,10 +27,18 @@ jobs:
       - name: Run TypeScript Typecheck
         run: npm run typecheck
 
-      - name: Run ESLint
+      - name: Run ESLint Quality Check
         run: npm run lint
 
-      - name: Run Playwright API Tests
+      - name: Run Smoke API Tests
+        run: npm run test:smoke
+        env:
+          CI: true
+          API_BASE_URL: https://dummyjson.com
+          API_USERNAME: emilys
+          API_PASSWORD: emilyspass
+
+      - name: Run Full API Regression Suite
         run: npm run test:api
         env:
           CI: true

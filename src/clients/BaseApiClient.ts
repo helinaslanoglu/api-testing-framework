@@ -1,6 +1,7 @@
 import { APIRequestContext, APIResponse } from '@playwright/test';
 import { ApiResponse } from '../models/common.model';
 import { config } from '../config/env.config';
+import { formatDiagnosticLog } from '../utils/logger';
 
 export abstract class BaseApiClient {
   protected request: APIRequestContext;
@@ -13,24 +14,43 @@ export abstract class BaseApiClient {
 
   private async formatResponse<T>(
     response: APIResponse,
-    startTime: number
+    startTime: number,
+    method: string,
+    endpoint: string,
+    headers?: Record<string, string>,
+    data?: unknown
   ): Promise<ApiResponse<T>> {
     const responseTimeMs = Date.now() - startTime;
-    let data: T;
+    let responseData: T;
     try {
-      data = (await response.json()) as T;
+      responseData = (await response.json()) as T;
     } catch {
-      data = {} as T;
+      responseData = {} as T;
     }
 
-    return {
+    const apiResponse: ApiResponse<T> = {
       status: response.status(),
       ok: response.ok(),
-      data,
+      data: responseData,
       headers: response.headers(),
       rawResponse: response,
       responseTimeMs,
     };
+
+    if (process.env.DEBUG_API_LOGS === 'true') {
+      const diagnostic = formatDiagnosticLog({
+        method,
+        url: `${this.baseUrl}${endpoint}`,
+        status: response.status(),
+        durationMs: responseTimeMs,
+        requestHeaders: headers,
+        requestData: data,
+        responseData,
+      });
+      console.log(diagnostic);
+    }
+
+    return apiResponse;
   }
 
   protected async get<T>(
@@ -44,7 +64,7 @@ export abstract class BaseApiClient {
       params,
       headers,
     });
-    return this.formatResponse<T>(response, startTime);
+    return this.formatResponse<T>(response, startTime, 'GET', endpoint, headers, params);
   }
 
   protected async post<T>(
@@ -58,7 +78,7 @@ export abstract class BaseApiClient {
       data,
       headers,
     });
-    return this.formatResponse<T>(response, startTime);
+    return this.formatResponse<T>(response, startTime, 'POST', endpoint, headers, data);
   }
 
   protected async put<T>(
@@ -72,7 +92,7 @@ export abstract class BaseApiClient {
       data,
       headers,
     });
-    return this.formatResponse<T>(response, startTime);
+    return this.formatResponse<T>(response, startTime, 'PUT', endpoint, headers, data);
   }
 
   protected async patch<T>(
@@ -86,7 +106,7 @@ export abstract class BaseApiClient {
       data,
       headers,
     });
-    return this.formatResponse<T>(response, startTime);
+    return this.formatResponse<T>(response, startTime, 'PATCH', endpoint, headers, data);
   }
 
   protected async delete<T>(
@@ -98,6 +118,6 @@ export abstract class BaseApiClient {
     const response = await this.request.delete(url, {
       headers,
     });
-    return this.formatResponse<T>(response, startTime);
+    return this.formatResponse<T>(response, startTime, 'DELETE', endpoint, headers);
   }
 }

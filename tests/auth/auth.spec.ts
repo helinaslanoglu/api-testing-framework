@@ -5,9 +5,9 @@ import {
 } from '../../src/data/user.factory';
 import { ApiErrorResponse } from '../../src/models/common.model';
 
-test.describe('Authentication & Authorization Suite', () => {
+test.describe('Authentication & Authorization Suite @auth', () => {
   test.describe('Positive Scenarios', () => {
-    test('should authenticate successfully with valid credentials', async ({
+    test('should authenticate successfully with valid credentials @smoke', async ({
       authClient,
     }) => {
       const payload = buildValidLoginPayload();
@@ -22,7 +22,7 @@ test.describe('Authentication & Authorization Suite', () => {
       expect(response.data.id).toBeDefined();
     });
 
-    test('should retrieve current profile using valid Bearer token', async ({
+    test('should retrieve current profile using valid Bearer token @smoke', async ({
       authClient,
     }) => {
       const loginPayload = buildValidLoginPayload();
@@ -36,6 +36,17 @@ test.describe('Authentication & Authorization Suite', () => {
       expect(profileResponse.ok).toBe(true);
       expect(profileResponse.data.username).toBe(loginPayload.username);
       expect(profileResponse.data.email).toBeDefined();
+    });
+
+    test('should fetch profile seamlessly using authenticatedUsersClient fixture @smoke', async ({
+      authenticatedUsersClient,
+    }) => {
+      const { authClient, token } = authenticatedUsersClient;
+      const response = await authClient.getCurrentUser(token);
+
+      expect(response.status).toBe(200);
+      expect(response.ok).toBe(true);
+      expect(response.data.username).toBeDefined();
     });
   });
 

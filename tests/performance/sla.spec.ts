@@ -5,7 +5,7 @@ import {
   buildValidLoginPayload,
 } from '../../src/data/user.factory';
 
-test.describe('API Latency & SLA Performance Suite', () => {
+test.describe('API Latency & SLA Performance Suite @sla', () => {
   test('should return Users List response within SLA threshold', async ({
     usersClient,
   }) => {
